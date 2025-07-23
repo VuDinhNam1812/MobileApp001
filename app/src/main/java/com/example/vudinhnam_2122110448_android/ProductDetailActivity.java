@@ -1,6 +1,9 @@
 package com.example.vudinhnam_2122110448_android;
 
+import com.bumptech.glide.Glide;
 import com.example.vudinhnam_2122110448_android.R;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -11,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.vudinhnam_2122110448_android.cart.CartManager;
 import com.example.vudinhnam_2122110448_android.models.Product;
 
 public class ProductDetailActivity extends AppCompatActivity {
@@ -18,7 +22,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     private ImageView imgProduct;
     private TextView tvName, tvPrice, tvDescription;
     private RatingBar ratingBar;
-    private ImageButton btnFavorite, btnBack;
+    private ImageButton btnFavorite, btnBack, btnCart;
     private Button btnAddToCart;
 
     private Product product;  // bạn truyền qua Intent
@@ -44,6 +48,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         btnFavorite = findViewById(R.id.btnFavorite);
         btnAddToCart = findViewById(R.id.btnAddToCart);
         btnBack = findViewById(R.id.btnBack);
+        btnCart = findViewById(R.id.btnCart);
     }
 
     private void getProductFromIntent() {
@@ -58,8 +63,11 @@ public class ProductDetailActivity extends AppCompatActivity {
     private void bindProductToUI() {
         if (product == null) return;
 
-        imgProduct.setImageResource(product.getImageResId());
-        tvName.setText(product.getName());
+        Glide.with(this)
+                .load(product.getImage())
+                .placeholder(R.drawable.ic_placeholder) // nên có ảnh tạm khi đang load
+                .into(imgProduct);
+        tvName.setText(product.getTitle());
         tvPrice.setText(product.getFormattedPrice());
         tvDescription.setText(product.getDescription());
         ratingBar.setRating(4.5f); // tạm thời để cố định
@@ -67,13 +75,14 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void setListeners() {
-        btnAddToCart.setOnClickListener(v ->
-                Toast.makeText(this, "Added to cart: " + product.getName(), Toast.LENGTH_SHORT).show()
-        );
+        btnAddToCart.setOnClickListener(v -> {
+            CartManager.getInstance().addToCart(product);
+            Toast.makeText(this, "Added to cart: " + product.getTitle(), Toast.LENGTH_SHORT).show();
+        });
 
-        btnFavorite.setOnClickListener(v -> {
-            product.setFavorite(!product.isFavorite());
-            updateFavoriteIcon(product.isFavorite());
+        btnCart.setOnClickListener(v -> {
+            Intent intent = new Intent(this, CartActivity.class);
+            startActivity(intent);
         });
 
         btnBack.setOnClickListener(v -> finish());
@@ -86,4 +95,6 @@ public class ProductDetailActivity extends AppCompatActivity {
             btnFavorite.setImageResource(R.drawable.ic_favorite_border);
         }
     }
+
+
 }

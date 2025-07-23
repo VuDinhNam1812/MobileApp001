@@ -1,5 +1,14 @@
 package com.example.vudinhnam_2122110448_android;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.vudinhnam_2122110448_android.models.Product;
 import com.example.vudinhnam_2122110448_android.adapters.ProductAdapter;
 
@@ -7,12 +16,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +34,16 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
 
     private RecyclerView recyclerViewProducts;
     private ProductAdapter productAdapter;
-    private List<Product> allProducts;
-    private List<Product> filteredProducts;
+    private List<Product> allProducts = new ArrayList<>();
+    private List<Product> filteredProducts = new ArrayList<>();
 
     private EditText edtSearch;
     private Button btnCategoryAll, btnCategoryChairs, btnCategoryTables, btnCategorySofas;
     private String currentCategory = "All";
+
+    private RequestQueue mRequestQueue;
+    private StringRequest mStringRequest;
+    private String url = "https://fakestoreapi.com/products";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +52,7 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
 
         initViews();
         setupRecyclerView();
-        createSampleData();
+        loadProductsFromApi();
         setupCategoryButtons();
         setupSearchFunction();
     }
@@ -50,35 +68,49 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
 
     private void setupRecyclerView() {
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(this));
-        filteredProducts = new ArrayList<>();
+
         productAdapter = new ProductAdapter(this, filteredProducts);
         productAdapter.setOnProductClickListener(this);
+        
         recyclerViewProducts.setAdapter(productAdapter);
     }
 
-    private void createSampleData() {
-        allProducts = new ArrayList<>();
-        // ❌ KHÔNG tạo lại filteredProducts ở đây
-        // filteredProducts = new ArrayList<>(); ← bỏ dòng này
+    private void loadProductsFromApi() {
+        mRequestQueue = Volley.newRequestQueue(this);
+        String url = "https://fakestoreapi.com/products";
 
-        // Chairs
-        allProducts.add(new Product(1, "Ghế dựa làm việc", "Ergonomic office chair", 299.99, R.drawable.chair1, "Chairs"));
-        allProducts.add(new Product(2, "Ghế lười", "Elegant dining chair", 599.99, R.drawable.chair2, "Chairs"));
-        allProducts.add(new Product(3, "Ghế nâu sang trọng", "Gaming chair RGB", 449.99, R.drawable.chair3, "Chairs"));
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+                response -> {
+                    allProducts.clear();
+                    filteredProducts.clear();
+                    try {
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject obj = response.getJSONObject(i);
+                            Product product = new Product();
+                            product.setId(obj.getInt("id"));
+                            product.setTitle(obj.getString("title"));
+                            product.setDescription(obj.getString("description"));
+                            product.setPrice(obj.getDouble("price"));
+                            product.setCategory(obj.getString("category"));
+                            product.setImage(obj.getString("image")); // Lưu link ảnh
 
-        // Tables
-        allProducts.add(new Product(4, "Bàn kính", "Coffee table with wooden legs", 199.99, R.drawable.table1, "Tables"));
-        allProducts.add(new Product(5, "Bàn ăn mở rộng", "Dining table 6-8 people", 899.99, R.drawable.table2, "Tables"));
-        allProducts.add(new Product(6, "Bàn học", "Desk with drawers", 349.99, R.drawable.table3, "Tables"));
+                            allProducts.add(product);
+                        }
 
-        // Sofas
-        allProducts.add(new Product(7, "Sofa trắng", "Fabric sofa gray", 1299.99, R.drawable.chair4, "Sofas"));
-        allProducts.add(new Product(8, "Sofa góc", "L-shaped sectional sofa", 1899.99, R.drawable.chair5, "Sofas"));
+                        // Mặc định hiển thị tất cả
+                        filteredProducts.addAll(allProducts);
+                        productAdapter.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    Toast.makeText(this, "Lỗi khi gọi API: " + error.toString(), Toast.LENGTH_LONG).show();
+                });
 
-        // Hiển thị tất cả ban đầu
-        filteredProducts.addAll(allProducts);
-        productAdapter.notifyDataSetChanged();
+        mRequestQueue.add(jsonArrayRequest);
     }
+
 
 
     private void setupCategoryButtons() {
@@ -151,7 +183,7 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
             boolean matchesCategory = currentCategory.equals("All") ||
                     product.getCategory().equals(currentCategory);
             boolean matchesSearch = searchText.isEmpty() ||
-                    product.getName().toLowerCase().contains(searchText.toLowerCase()) ||
+                    product.getTitle().toLowerCase().contains(searchText.toLowerCase()) ||
                     product.getDescription().toLowerCase().contains(searchText.toLowerCase());
 
             if (matchesCategory && matchesSearch) {
@@ -162,6 +194,27 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
         productAdapter.notifyDataSetChanged();
     }
 
+    //Ham Goi Data API
+    private void getData() {
+        // RequestQueue initialized
+        mRequestQueue = Volley.newRequestQueue(this);
+
+        // String Request initialized
+        mStringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                Toast.makeText(getApplicationContext(), "Response :" + response.toString(), Toast.LENGTH_LONG).show();//display the response on screen
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i(TAG, "Error :" + error.toString());
+            }
+        });
+
+        mRequestQueue.add(mStringRequest);
+    }
     @Override
     public void onProductClick(Product product) {
         Intent intent = new Intent(this, ProductDetailActivity.class);
@@ -174,10 +227,11 @@ public class HomeActivity extends AppCompatActivity implements ProductAdapter.On
     public void onFavoriteClick(Product product) {
         // Handle favorite click
         String message = product.isFavorite() ?
-                "Added to favorites: " + product.getName() :
-                "Removed from favorites: " + product.getName();
+                "Added to favorites: " + product.getTitle() :
+                "Removed from favorites: " + product.getTitle();
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 
         // TODO: Save to database or SharedPreferences
     }
+
 }

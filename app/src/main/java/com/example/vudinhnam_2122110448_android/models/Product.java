@@ -4,28 +4,17 @@ import java.io.Serializable;
 
 public class Product implements Serializable {
     private int id;
-    private String name;
+    private String title;         // thay vì name
     private String description;
     private double price;
-    private int imageResId;
+    private String image;         // thay vì imageResId
     private String category;
-    private boolean isFavorite;
+    private boolean isFavorite = false;
+    private int quantity = 1;
 
-    // Constructor
     public Product() {
     }
 
-    public Product(int id, String name, String description, double price, int imageResId, String category) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.imageResId = imageResId;
-        this.category = category;
-        this.isFavorite = false;
-    }
-
-    // Getters và Setters
     public int getId() {
         return id;
     }
@@ -34,12 +23,10 @@ public class Product implements Serializable {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getTitle() { return title; }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
@@ -58,13 +45,13 @@ public class Product implements Serializable {
         this.price = price;
     }
 
-    public int getImageResId() {
-        return imageResId;
+    public String getImage() {
+        return image;
     }
 
-//    public void setImageUrl(String imageUrl) {
-//        this.imageUrl = imageUrl;
-//    }
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public String getCategory() {
         return category;
@@ -82,8 +69,11 @@ public class Product implements Serializable {
         isFavorite = favorite;
     }
 
-    // Method để format giá tiền
     public String getFormattedPrice() {
         return String.format("$%.2f", price);
     }
+
+    public int getQuantity() { return quantity; }
+
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

@@ -1,5 +1,6 @@
 package com.example.vudinhnam_2122110448_android.adapters;
 
+import com.bumptech.glide.Glide;
 import com.example.vudinhnam_2122110448_android.models.Product;
 import com.example.vudinhnam_2122110448_android.R;
 import android.content.Context;
@@ -105,15 +106,15 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
 
         public void bind(Product product) {
-            tvProductName.setText(product.getName());
+            tvProductName.setText(product.getTitle());
             tvProductDescription.setText(product.getDescription());
             tvProductPrice.setText(product.getFormattedPrice());
 
-            if (product.getImageResId() != 0) {
-                imgProduct.setImageResource(product.getImageResId());
-            } else {
-                imgProduct.setImageResource(R.drawable.ic_placeholder);
-            }
+            // Load ảnh từ URL bằng Glide
+            Glide.with(context)
+                    .load(product.getImage())
+                    .placeholder(R.drawable.ic_placeholder)
+                    .into(imgProduct);
 
             updateFavoriteIcon(product.isFavorite());
         }

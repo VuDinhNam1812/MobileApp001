@@ -36,6 +36,7 @@
                 android:textStyle="bold" />
 
             <ImageButton
+                android:id="@+id/btnCart"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_cart"
@@ -153,7 +154,7 @@
             android:layout_height="48dp"
             android:text="Add to Cart"
             android:layout_marginTop="24dp"
-            android:backgroundTint="#1E1E2E"
+            android:backgroundTint="#FF6B35"
             android:textColor="#FFFFFF"
             android:drawableLeft="@drawable/ic_add"
             android:drawablePadding="8dp" />
